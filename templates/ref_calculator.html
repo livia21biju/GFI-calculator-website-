@@ -1,0 +1,228 @@
+<!-- ✅ FINAL HTML for GFI Calculator with Working Submit Button -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Annual Fuel Consumption</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Segoe UI, monospace;
+            padding: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-family: Segoe UI, monospace;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f6f6f6;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100px;
+            padding: 5px;
+            text-align: right;
+            font-family: Segoe UI, monospace;
+        }
+        .custom-section {
+            margin-top: 40px;
+        }
+        .remove-btn {
+            color: red;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        h2 {
+            color: black;
+            font-size: 25px;
+            text-align: left;
+            font-family: Segoe UI, monospace;
+        }
+        h3 {
+            color: black;
+            font-family: Segoe UI;
+            word-spacing: 5px;
+            letter-spacing: 0.3px;
+        }
+        .calculate-btn {
+            background-color: #2196F3;
+            color: white;
+            font-size: 16px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div style="background-color: #699558; padding: 40px 20px; text-align: center;">
+        <div style="font-size: 48px; color: black; font-weight: bold;">
+            IMO 2028 GFI Compliance Calculator
+        </div>
+        <p style="max-width: 800px; margin: auto; color: black; font-size: 18px;">
+            Calculate your vessel's compliance with the IMO 2028 Goal-based measure for Greenhouse Gas Fuel Intensity (GFI).
+        </p>
+    </div>
+
+    <form method="POST">
+        <div style="display: flex; gap: 40px; align-items: flex-start; margin-top: 20px;">
+            <div style="flex: 2;">
+                <h2>Annual Fuel Consumption (tonnes)</h2>
+                <table class="fuel-table">
+                    <thead>
+                        <tr>
+                            <th>Fuel Type</th>
+                            <th>LHV (MJ/t)</th>
+                            <th>GHG Intensity (gCO₂/MJ)</th>
+                            <th>Fuel Consumed (Tonnes)</th>
+                            <th>Fuel Price (USD/MT)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    {% for fuel in fuel_data %}
+    <tr>
+        <td>{{ fuel.type }}</td>
+        <td><input type="number" name="lhv" step="1" value="{{ fuel.lhv }}"></td>
+        <td><input type="number" name="ghg" step="0.01" value="{{ fuel.ghg }}"></td>
+        <td><input type="number" name="consumed" step="0.01" value="{{ fuel.consumed }}"></td>
+        <td><input type="number" name="price" step="0.01" value="{{ fuel.price }}"></td>
+    </tr>
+    {% endfor %}
+</tbody>
+
+                </table>
+            </div>
+
+            <div class="pricing-info">
+                <h3>Pricing Information</h3>
+                <table>
+                    <tr>
+                        <td>Surplus Unit Trading Price ($)</td>
+                        <td><input type="number" name="surplus_price" step="0.01" value="240.0"></td>
+                    </tr>
+                    <tr>
+                        <td>Tier 1 RU Price (2031+) ($)</td>
+                        <td><input type="number" name="tier1_price" step="0.01" value="100.0"></td>
+                    </tr>
+                    <tr>
+                        <td>Tier 2 RU Price (2031+) ($)</td>
+                        <td><input type="number" name="tier2_price" step="0.01" value="380.0"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="custom-section">
+            <h3 style="color: black">Custom Fuels (Optional)</h3>
+            <table id="custom-fuel-table">
+                <thead>
+                    <tr>
+                        <th>Fuel Type</th>
+                        <th>LHV</th>
+                        <th>GHG Intensity</th>
+                        <th>Tonnes</th>
+                        <th>Price (USD/MT)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="custom-fuel-body">
+{% for custom in custom_fuel_data %}
+<tr>
+    <td><input type="text" name="custom_type" value="{{ custom.type }}"></td>
+    <td><input type="number" name="custom_lhv" value="{{ custom.lhv }}" step="1"></td>
+    <td><input type="number" name="custom_ghg" value="{{ custom.ghg }}" step="0.01"></td>
+    <td><input type="number" name="custom_consumed" value="{{ custom.consumed }}" step="0.01"></td>
+    <td><input type="number" name="custom_price" value="{{ custom.price }}" step="0.01"></td>
+    <td><span class="remove-btn" onclick="this.parentElement.parentElement.remove()">✖</span></td>
+</tr>
+{% endfor %}
+</tbody>
+
+            </table>
+            <button type="button" onclick="addCustomFuelRow()" style="background-color: #699558; color: white; padding: 10px 15px; border: none; border-radius: 5px;">+ Add Custom Fuel</button>
+        </div>
+
+        <button type="submit" class="calculate-btn">Calculate GFI Results </button>
+    </form>
+
+    {% if results_table %}
+    <h3>Compliance Results</h3>
+    <div style="overflow-x: auto;">{{ results_table|safe }}</div>
+    {% endif %}
+
+    <script>
+        function addCustomFuelRow() {
+            const tbody = document.getElementById('custom-fuel-body');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" name="custom_type" placeholder="Enter fuel name"></td>
+                <td><input type="number" name="custom_lhv" step="1"></td>
+                <td><input type="number" name="custom_ghg" step="0.01"></td>
+                <td><input type="number" name="custom_consumed" step="0.01"></td>
+                <td><input type="number" name="custom_price" step="0.01"></td>
+                <td><span class="remove-btn" onclick="this.parentElement.parentElement.remove()">✖</span></td>
+            `;
+            tbody.appendChild(row);
+        }
+    </script>
+<!-- 🔹 GHG Intensity Chart -->
+<h3 style="margin-top: 30px;">GHG Intensity vs IMO Targets</h3>
+<div id="ghgChart" style="height: 400px; width: 100%; margin-bottom: 40px;"></div>
+
+<!-- 🔹 Load Highcharts Library -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<script>
+    // 🔹 Get chart data from Flask
+    const chartData = JSON.parse('{{ chart_data | safe }}');
+
+    // 🔹 Draw the chart
+    Highcharts.chart('ghgChart', {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: 'Attained GHG Intensity vs IMO Targets'
+        },
+        xAxis: {
+            categories: chartData.years,
+            title: { text: 'Year' }
+        },
+        yAxis: {
+            title: {
+                text: 'GHG Intensity (gCO₂e/MJ)'
+            }
+        },
+        tooltip: {
+            shared: true,
+            valueSuffix: ' gCO₂e/MJ'
+        },
+        series: [
+            {
+                name: 'Attained GFI',
+                data: chartData.attained,
+                color: '#0071A7'
+            },
+            {
+                name: 'IMO GHG BT',
+                data: chartData.ghg_bt,
+                color: '#FF0000'
+            },
+            {
+                name: 'IMO GHG DT',
+                data: chartData.ghg_dt,
+                color: '#00AA00'
+            }
+        ]
+    });
+</script>
+
+</body>
+</html>

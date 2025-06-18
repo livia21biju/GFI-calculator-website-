@@ -1,0 +1,159 @@
+body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 30px;
+    color: black;
+}
+
+h2, h3 {
+    color: black;
+    font-family: "Segoe UI", sans-serif;
+}
+
+h2 {
+    font-size: 25px;
+    margin-bottom: 10px;
+}
+
+h3 {
+    word-spacing: 5px;
+    letter-spacing: 0.3px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-family: "Segoe UI", sans-serif;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background-color: #f6f6f6;
+}
+
+input[type="text"],
+input[type="number"] {
+    width: 100px;
+    padding: 6px;
+    font-family: "Segoe UI", sans-serif;
+    text-align: right;
+}
+
+input[type="number"] {
+    width: 100%;
+}
+
+.submit-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    float: right;
+    background-color: #699558;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.custom-section {
+    margin-top: 40px;
+}
+
+.custom-header {
+    color: black;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.remove-btn {
+    color: red;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.header-banner {
+    background-color: #699558;
+    padding: 40px 20px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.header-banner h1 {
+    font-size: 48px;
+    font-weight: bold;
+    color: black;
+    margin: 0;
+}
+
+.header-banner p {
+    max-width: 800px;
+    margin: auto;
+    font-size: 18px;
+    color: black;
+}
+
+.section-header {
+    padding: 20px;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+}
+
+.about-imo {
+    background: #f9f9f9;
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    flex: 1;
+    color: black;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+button {
+    background-color: #699558;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.fuel-table {
+    background-color: #f4fff4; /* light green tint */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.fuel-table th {
+    background-color: #699558; /* light green for headers */
+}
+
+.fuel-table td {
+    background-color: #ffffff; /* white for cells */
+}
+.fuel-table input[type="number"] {
+    border-radius: 6px; /* adjust this value for more/less curve */
+    padding: 4px;
+    border: 1px solid #444;
+}
+.pricing-table {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    overflow: hidden;
+}
+    
+.pricing-table td {
+    background-color: #ffffff; /* white for cells */
+} 
+.pricing-table input[type="number"] {
+    border-radius: 6px; /* adjust this value for more/less curve */
+    padding: 4px;
+    border: 1px solid #444;
+}
