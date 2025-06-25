@@ -71,7 +71,8 @@
         </p>
     </div>
 
-    <form method="POST">
+
+   <form method="POST">
         <div style="display: flex; gap: 40px; align-items: flex-start; margin-top: 20px;">
             <div style="flex: 2;">
                 <h2>Annual Fuel Consumption (tonnes)</h2>
@@ -172,9 +173,57 @@
             tbody.appendChild(row);
         }
     </script>
+<!-- 🔷 Info Tiles Section -->
+<div style="display: flex; justify-content: space-between; gap: 20px; margin-top: 30px;">
+  <!-- GHG -->
+  <div style="flex: 1; background-color: #ffffff; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+    <h3 style="color: #333;">GHG</h3>
+    <p style="font-size: 24px; color: #699558; font-weight: bold;">
+      {{ ghg }} gCO₂/MJ
+    </p>
+  </div>
+
+  <!-- Total Fuel Cost -->
+<div style="flex: 1; background-color: #ffffff; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+  <h3 style="color: #333;">Total Fuel Cost</h3>
+  <p style="font-size: 24px; color: #699558; font-weight: bold;">
+    {% if total_fuel is defined %}
+      ${{ '{:,.2f}'.format(total_fuel) }}
+    {% else %}
+      -
+    {% endif %}
+  </p>
+</div>
+
+  <!-- Total Penalty -->
+  <div style="flex: 1; background-color: #ffffff; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+    <h3 style="color: #333;">Total Penalty</h3>
+    <p style="font-size: 24px; color: #699558; font-weight: bold;">
+      {% if total_penalty is defined %}
+        ${{ '{:,.2f}'.format(total_penalty) }}
+      {% else %}
+        -
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+
+<!-- 📊 Side-by-side Chart Container -->
+<div style="display: flex; gap: 30px; justify-content: center; align-items: flex-start; margin-top: 30px;">
+
+    <!-- 🔹 GHG Intensity Chart -->
+    <div id="ghgChart" style="flex: 1; height: 400px;"></div>
+
+    <!-- 🔹 Net Remedial Units Chart -->
+    <div id="ruChart" style="flex: 1; height: 400px;"></div>
+
+</div>
+
+
 <!-- 🔹 GHG Intensity Chart -->
-<h3 style="margin-top: 30px;">GHG Intensity vs IMO Targets</h3>
-<div id="ghgChart" style="height: 400px; width: 100%; margin-bottom: 40px;"></div>
+
+
 
 <!-- 🔹 Load Highcharts Library -->
 <script src="https://code.highcharts.com/highcharts.js"></script>
@@ -189,17 +238,22 @@
             type: 'line'
         },
         title: {
-            text: 'Attained GHG Intensity vs IMO Targets'
+            text: 'GHG Intensity Reduction Targets (Base vs Directory)'
         },
         xAxis: {
             categories: chartData.years,
             title: { text: 'Year' }
         },
         yAxis: {
-            title: {
-                text: 'GHG Intensity (gCO₂e/MJ)'
-            }
+        title: {
+            text: 'GHG Intensity (gCO₂e/MJ)'
         },
+        labels: {
+            formatter: function () {
+                return this.value;
+            }
+        }
+    },
         tooltip: {
             shared: true,
             valueSuffix: ' gCO₂e/MJ'
@@ -219,6 +273,68 @@
                 name: 'IMO GHG DT',
                 data: chartData.ghg_dt,
                 color: '#00AA00'
+            }
+        ]
+    });
+</script>
+<!-- 🔹 Net Remedial Units Chart -->
+
+
+
+<script>
+    Highcharts.chart('ruChart', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Yearwise Net Remedial Units'
+        },
+        xAxis: {
+            categories: chartData.years,
+            title: { text: 'Year' }
+        },
+      yAxis: {
+    min: 0,
+    title: {
+        text: 'Net Remedial Units ($)'
+    },
+    stackLabels: {
+        enabled: false,
+        style: {
+            fontWeight: 'bold',
+            color: 'gray'
+        },
+        formatter: function () {
+            return '$' + Highcharts.numberFormat(this.total, 0, '.', ',');
+        }
+    }
+},
+
+        tooltip: {
+            shared: true,
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>${point.y}</b><br/>',
+            valueDecimals: 2
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal'
+            }
+        },
+        series: [
+            {
+                name: 'Potential Surplus',
+                data: chartData.surplus_ru.map(x => Math.abs(x)),  // make positive
+                color: '#2f7ed8'
+            },
+            {
+                name: 'Tier2 RUs',
+                data: chartData.tier2_ru,
+                color: '#492f9f'
+            },
+            {
+                name: 'Tier1 RUs',
+                data: chartData.tier1_ru,
+                color: '#00b050'
             }
         ]
     });
