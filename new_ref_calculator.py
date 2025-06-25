@@ -17,33 +17,35 @@ def fuel_form():
     ]
 
     results_table = None
-    weighted_ghg = 0
+    ghg = 0
+    total_fuel = 0
+    total_penalty=0 
     fuel_data = []
     custom_fuel_data = []
     chart_data = {}
 
     if request.method == "POST":
-        # --- Standard fuel inputs ---
+        # Standard fuel inputs
         lhv_list = request.form.getlist("lhv")
         ghg_list = request.form.getlist("ghg")
         quantity_list = request.form.getlist("consumed")
         price_list = request.form.getlist("price")
 
-        # --- Custom fuel inputs ---
+        # Custom fuel inputs
         custom_type_list = request.form.getlist("custom_type")
         custom_lhv_list = request.form.getlist("custom_lhv")
         custom_ghg_list = request.form.getlist("custom_ghg")
         custom_qty_list = request.form.getlist("custom_consumed")
         custom_price_list = request.form.getlist("custom_price")
 
-        # --- Pricing inputs ---
+        # Pricing inputs
         surplus_costrate = float(request.form.get("surplus_price", 240))
         Tier_1_cost = float(request.form.get("tier1_price", 100))
         Tier_2_cost = float(request.form.get("tier2_price", 380))
 
         fuels = []
 
-        # --- Standard fuels ---
+        # Standard fuels
         for i in range(len(fuel_types)):
             try:
                 lhv = float(lhv_list[i])
@@ -68,7 +70,7 @@ def fuel_form():
                     "price": ""
                 })
 
-        # --- Custom fuels ---
+        # Custom fuels
         for i in range(len(custom_type_list)):
             try:
                 lhv = float(custom_lhv_list[i])
@@ -79,18 +81,21 @@ def fuel_form():
                     fuels.append({"lcv": lhv, "ghg": ghg, "quantity": qty})
                 custom_fuel_data.append({
                     "type": custom_type_list[i],
-                    "lhv": custom_lhv_list[i],
-                    "ghg": custom_ghg_list[i],
-                    "consumed": custom_qty_list[i],
-                    "price": custom_price_list[i]
+                    "lhv": lhv,
+                    "ghg": ghg,
+                    "consumed": qty,
+                    "price": price
                 })
             except:
                 continue
 
-        # --- GFI calculation ---
+        # GFI calculation
         total_energy = sum(f["lcv"] * f["quantity"] for f in fuels)
         total_ghg_emission = sum(f["lcv"] * f["ghg"] * f["quantity"] for f in fuels)
         weighted_ghg = round(total_ghg_emission / total_energy, 2) if total_energy else 0
+        total_fuel = round(sum(f["quantity"] for f in fuels), 2)
+        
+
 
         df = pd.DataFrame({
             'Year': [2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035],
@@ -123,18 +128,46 @@ def fuel_form():
             0
         )
 
+        # ✅ Fix: Replace NaN with 0 to prevent JS chart issues
+       # Replace NaN with 0
+        df.fillna(0, inplace=True)
+
+        # Calculate chart data BEFORE formatting columns with "$"
+        raw_total_penalty = round(df["Total_Penalty"].sum(), 2)
+        surplus_ru = df["Surplus Cost"].round(2).tolist()
+
+        chart_data = {
+          "years": df['Year'].tolist(),
+          "attained": df['Attained GFI'].tolist(),
+          "ghg_bt": df['GHG BT'].tolist(),
+          "ghg_dt": df['GHG DT'].tolist(),
+          "tier1_ru": df['Compliance Tier 1'].round(2).tolist(),
+          "tier2_ru": df['Compliance Tier 2'].round(2).tolist(),
+          "surplus_ru": surplus_ru
+}
+
+        # Rename columns to include dollar symbol in header only
+        df.rename(columns={
+        "Compliance Tier 1 cost": "Compliance Tier 1 cost ($)",
+        "Compliance Tier 2 cost": "Compliance Tier 2 cost ($)",
+        "Surplus Cost": "Surplus Cost ($)"
+         }, inplace=True)
+
+         # Recalculate total_penalty if needed (already done above with raw numeric)
+        total_penalty = raw_total_penalty
+
+         # Swap Tier 1 and Tier 2 columns for display
+        cols = list(df.columns)
+        if "Compliance Tier 1" in cols and "Compliance Tier 2" in cols:
+          i1 = cols.index("Compliance Tier 1")
+          i2 = cols.index("Compliance Tier 2")
+        cols[i1], cols[i2] = cols[i2], cols[i1]
+        df = df[cols]
+
+        # Generate HTML table
         results_table = df.round(2).to_html(classes="styled-table", index=False)
 
-        # --- Chart data ---
-        chart_data = {
-            "years": df['Year'].tolist(),
-            "attained": df['Attained GFI'].tolist(),
-            "ghg_bt": df['GHG BT'].tolist(),
-            "ghg_dt": df['GHG DT'].tolist(),
-        }
-
     else:
-        # GET: initialize default fields
         fuel_data = [{"type": ft, "lhv": "", "ghg": "", "consumed": "", "price": ""} for ft in fuel_types]
         custom_fuel_data = []
 
@@ -143,10 +176,12 @@ def fuel_form():
         fuel_data=fuel_data,
         custom_fuel_data=custom_fuel_data,
         results_table=results_table,
-        weighted_ghg=weighted_ghg,
+        ghg=ghg, 
+        total_fuel=total_fuel,
+        total_penalty=total_penalty,
         chart_data=json.dumps(chart_data)
+
     )
 
 if __name__ == '__main__':
     app.run(debug=True)
-
